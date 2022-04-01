@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
 	pb "github.com/otamoe/vptun-pb"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
@@ -19,9 +21,10 @@ import (
 
 type (
 	GrpcClient struct {
-		Id                  string
-		RouteAddress        string
-		IRouteAddress       net.IP
+		Id            string
+		RouteAddress  string
+		IRouteAddress net.IP
+
 		MD                  metadata.MD
 		Peer                *peer.Peer
 		ConnectAt           time.Time
@@ -37,6 +40,14 @@ type (
 
 		response chan *pb.StreamResponse
 		shells   map[string]*GrpcClientShell
+
+		layerIPv4   layers.IPv4
+		layerIPv6   layers.IPv6
+		layerICMPv4 layers.ICMPv4
+		layerICMPv6 layers.ICMPv6
+		layerTCP    layers.TCP
+		layerUDP    layers.UDP
+		layerParser *gopacket.DecodingLayerParser
 	}
 )
 

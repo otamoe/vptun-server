@@ -7,21 +7,28 @@ type (
 )
 
 var (
-	RouteFieldSource      RouteField = "src"
-	RouteFieldDestination RouteField = "dst"
-	RouteFieldRemark      RouteField = "rem"
-	RouteFieldAction      RouteField = "act"
-	RouteFieldState       RouteField = "sta"
-	RouteFieldCreatedAt   RouteField = "c"
-	RouteFieldUpdatedAt   RouteField = "u"
-	RouteFieldExpiredAt   RouteField = "e"
+	RouteFieldSourceIP        RouteField = "sip"
+	RouteFieldDestinationIP   RouteField = "dip"
+	RouteFieldSourcePort      RouteField = "spt"
+	RouteFieldDestinationPort RouteField = "dpt"
+	RouteFieldRemark          RouteField = "rem"
+	RouteFieldAction          RouteField = "act"
+	RouteFieldState           RouteField = "sta"
+	RouteFieldLevel           RouteField = "lvl"
+	RouteFieldType            RouteField = "typ"
+	RouteFieldCreatedAt       RouteField = "c"
+	RouteFieldUpdatedAt       RouteField = "u"
+	RouteFieldExpiredAt       RouteField = "e"
 
 	AllRouteFields = []RouteField{
-		RouteFieldSource,
-		RouteFieldDestination,
+		RouteFieldSourceIP,
+		RouteFieldDestinationIP,
+		RouteFieldSourcePort,
+		RouteFieldDestinationPort,
 		RouteFieldRemark,
 		RouteFieldAction,
 		RouteFieldState,
+		RouteFieldLevel,
 		RouteFieldCreatedAt,
 		RouteFieldUpdatedAt,
 		RouteFieldExpiredAt,

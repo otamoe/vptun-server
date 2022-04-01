@@ -14,8 +14,8 @@ import (
 type (
 	Route struct {
 		*pb.Route
-		iSource      *net.IPNet `json:"-"`
-		iDestination *net.IPNet `json:"-"`
+		iSourceIP      *net.IPNet `json:"-"`
+		iDestinationIP *net.IPNet `json:"-"`
 	}
 )
 
@@ -35,36 +35,54 @@ func (route *Route) Clone() (rRoute *Route) {
 		*rRoute.Route = *route.Route
 	}
 
-	if route.iSource != nil {
-		rRoute.iSource = &net.IPNet{}
-		*rRoute.iSource = *route.iSource
+	if route.iSourceIP != nil {
+		rRoute.iSourceIP = &net.IPNet{}
+		*rRoute.iSourceIP = *route.iSourceIP
 	}
-	if route.iDestination != nil {
-		rRoute.iDestination = &net.IPNet{}
-		*rRoute.iDestination = *route.iDestination
+	if route.iDestinationIP != nil {
+		rRoute.iDestinationIP = &net.IPNet{}
+		*rRoute.iDestinationIP = *route.iDestinationIP
 	}
 	return
 }
 
-func (route *Route) WithSource(ipnet *net.IPNet) (rRoute *Route) {
+func (route *Route) WithType(typ pb.Route_Type) (rRoute *Route) {
 	rRoute = route.Clone()
-	rRoute.iSource = ipnet
-	if rRoute.iSource == nil {
-		rRoute.Route.Source = ""
+	rRoute.Type = typ
+	return rRoute
+}
+
+func (route *Route) WithSourceIP(ipnet *net.IPNet) (rRoute *Route) {
+	rRoute = route.Clone()
+	rRoute.iSourceIP = ipnet
+	if rRoute.iSourceIP == nil {
+		rRoute.Route.SourceIP = ""
 	} else {
-		rRoute.Route.Source = rRoute.iSource.String()
+		rRoute.Route.SourceIP = rRoute.iSourceIP.String()
 	}
 	return rRoute
 }
 
-func (route *Route) WithDestination(ipnet *net.IPNet) (rRoute *Route) {
+func (route *Route) WithDestinationIP(ipnet *net.IPNet) (rRoute *Route) {
 	rRoute = route.Clone()
-	rRoute.iDestination = ipnet
-	if rRoute.iDestination == nil {
-		rRoute.Route.Destination = ""
+	rRoute.iDestinationIP = ipnet
+	if rRoute.iDestinationIP == nil {
+		rRoute.Route.DestinationIP = ""
 	} else {
-		rRoute.Route.Destination = rRoute.iDestination.String()
+		rRoute.Route.DestinationIP = rRoute.iDestinationIP.String()
 	}
+	return rRoute
+}
+
+func (route *Route) WithSourcePort(port uint32) (rRoute *Route) {
+	rRoute = route.Clone()
+	rRoute.Route.SourcePort = port
+	return rRoute
+}
+
+func (route *Route) WithDestinationPort(port uint32) (rRoute *Route) {
+	rRoute = route.Clone()
+	rRoute.Route.DestinationPort = port
 	return rRoute
 }
 
@@ -77,6 +95,11 @@ func (route *Route) WithRemark(remark string) (rRoute *Route) {
 func (route *Route) WithAction(action pb.Route_Action) (rRoute *Route) {
 	rRoute = route.Clone()
 	rRoute.Action = action
+	return rRoute
+}
+func (route *Route) WithLevel(level int32) (rRoute *Route) {
+	rRoute = route.Clone()
+	rRoute.Level = level
 	return rRoute
 }
 
@@ -107,13 +130,13 @@ func (route *Route) UnmarshalJSON(data []byte) (err error) {
 	if err = json.Unmarshal(data, route.Route); err != nil {
 		return
 	}
-	if route.Route.Source != "" {
-		if _, route.iSource, err = net.ParseCIDR(route.Route.Source); err != nil {
+	if route.Route.SourceIP != "" {
+		if _, route.iSourceIP, err = net.ParseCIDR(route.Route.SourceIP); err != nil {
 			return
 		}
 	}
-	if route.Route.Destination != "" {
-		if _, route.iDestination, err = net.ParseCIDR(route.Route.Destination); err != nil {
+	if route.Route.DestinationIP != "" {
+		if _, route.iDestinationIP, err = net.ParseCIDR(route.Route.DestinationIP); err != nil {
 			return
 		}
 	}
@@ -124,11 +147,10 @@ func (route *Route) load(txn *badger.Txn) (err error) {
 	var item *badger.Item
 	var value []byte
 
-	// RouteFieldSource
+	// RouteFieldType
 	{
-		route.Route.Source = ""
-		route.iSource = nil
-		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldSource)); err != nil && err != badger.ErrKeyNotFound {
+		route.Route.Type = 0
+		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldType)); err != nil && err != badger.ErrKeyNotFound {
 			return
 		}
 		if item != nil {
@@ -136,19 +158,37 @@ func (route *Route) load(txn *badger.Txn) (err error) {
 				return
 			}
 			if len(value) != 0 {
-				route.Route.Source = string(value)
-				if _, route.iSource, err = net.ParseCIDR(route.Route.Source); err != nil {
+				buf := bytes.NewBuffer(value)
+				binary.Read(buf, binary.BigEndian, &route.Type)
+			}
+		}
+	}
+
+	// RouteFieldSourceIP
+	{
+		route.Route.SourceIP = ""
+		route.iSourceIP = nil
+		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldSourceIP)); err != nil && err != badger.ErrKeyNotFound {
+			return
+		}
+		if item != nil {
+			if value, err = item.ValueCopy(nil); err != nil {
+				return
+			}
+			if len(value) != 0 {
+				route.Route.SourceIP = string(value)
+				if _, route.iSourceIP, err = net.ParseCIDR(route.Route.SourceIP); err != nil {
 					return
 				}
 			}
 		}
 	}
 
-	// RouteFieldDestination
+	// RouteFieldDestinationIP
 	{
-		route.Route.Destination = ""
-		route.iDestination = nil
-		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldDestination)); err != nil && err != badger.ErrKeyNotFound {
+		route.Route.DestinationIP = ""
+		route.iDestinationIP = nil
+		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldDestinationIP)); err != nil && err != badger.ErrKeyNotFound {
 			return
 		}
 		if item != nil {
@@ -156,13 +196,46 @@ func (route *Route) load(txn *badger.Txn) (err error) {
 				return
 			}
 			if len(value) != 0 {
-				route.Route.Destination = string(value)
-				if _, route.iDestination, err = net.ParseCIDR(route.Route.Destination); err != nil {
+				route.Route.DestinationIP = string(value)
+				if _, route.iDestinationIP, err = net.ParseCIDR(route.Route.DestinationIP); err != nil {
 					return
 				}
 			}
 		}
 	}
+	// RouteFieldSourcePort
+	{
+		route.Route.SourcePort = 0
+		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldSourcePort)); err != nil && err != badger.ErrKeyNotFound {
+			return
+		}
+		if item != nil {
+			if value, err = item.ValueCopy(nil); err != nil {
+				return
+			}
+			if len(value) != 0 {
+				buf := bytes.NewBuffer(value)
+				binary.Read(buf, binary.BigEndian, &route.SourcePort)
+			}
+		}
+	}
+	// RouteFieldDestinationPort
+	{
+		route.Route.DestinationPort = 0
+		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldDestinationPort)); err != nil && err != badger.ErrKeyNotFound {
+			return
+		}
+		if item != nil {
+			if value, err = item.ValueCopy(nil); err != nil {
+				return
+			}
+			if len(value) != 0 {
+				buf := bytes.NewBuffer(value)
+				binary.Read(buf, binary.BigEndian, &route.DestinationPort)
+			}
+		}
+	}
+
 	// RouteFieldRemark
 	{
 		route.Route.Remark = ""
@@ -196,6 +269,24 @@ func (route *Route) load(txn *badger.Txn) (err error) {
 			}
 		}
 	}
+
+	// RouteFieldLevel
+	{
+		route.Route.Level = 0
+		if item, err = txn.Get(routeFieldDBKey(route.Id, RouteFieldLevel)); err != nil && err != badger.ErrKeyNotFound {
+			return
+		}
+		if item != nil {
+			if value, err = item.ValueCopy(nil); err != nil {
+				return
+			}
+			if len(value) != 0 {
+				buf := bytes.NewBuffer(value)
+				binary.Read(buf, binary.BigEndian, &route.Level)
+			}
+		}
+	}
+
 	// RouteFieldState
 	{
 		route.State = 0
@@ -277,12 +368,34 @@ func (route *Route) load(txn *badger.Txn) (err error) {
 }
 
 func (route *Route) save(txn *badger.Txn) (err error) {
-	if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldSource), []byte(route.Route.Source)); err != nil {
+	{
+		buf := bytes.NewBuffer([]byte{})
+		binary.Write(buf, binary.BigEndian, route.Type)
+		if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldType), buf.Bytes()); err != nil {
+			return
+		}
+	}
+	if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldSourceIP), []byte(route.Route.SourceIP)); err != nil {
 		return
 	}
-	if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldDestination), []byte(route.Route.Destination)); err != nil {
+	if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldDestinationIP), []byte(route.Route.DestinationIP)); err != nil {
 		return
 	}
+	{
+		buf := bytes.NewBuffer([]byte{})
+		binary.Write(buf, binary.BigEndian, route.SourcePort)
+		if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldSourcePort), buf.Bytes()); err != nil {
+			return
+		}
+	}
+	{
+		buf := bytes.NewBuffer([]byte{})
+		binary.Write(buf, binary.BigEndian, route.DestinationPort)
+		if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldDestinationPort), buf.Bytes()); err != nil {
+			return
+		}
+	}
+
 	if err = txn.Set(routeFieldDBKey(route.Id, RouteFieldRemark), []byte(route.Route.Remark)); err != nil {
 		return
 	}
@@ -348,25 +461,34 @@ func newRoute(id string) *Route {
 func (routes Routes) Len() int {
 	return len(routes)
 }
+
 func (routes Routes) Less(i, j int) bool {
+	if routes[i].Level < routes[j].Level {
+		return true
+	}
+
+	if routes[i].Level > routes[j].Level {
+		return false
+	}
+
 	var iMask []byte
 	var jMask []byte
-	if routes[i].iSource != nil {
-		iMask = routes[i].iSource.Mask
+	if routes[i].iSourceIP != nil {
+		iMask = routes[i].iSourceIP.Mask
 	}
-	if routes[j].iSource != nil {
-		iMask = routes[j].iSource.Mask
+	if routes[j].iSourceIP != nil {
+		iMask = routes[j].iSourceIP.Mask
 	}
 	if c := bytes.Compare(iMask, jMask); c != 0 {
 		return c != 1
 	}
 	var iAddr []byte
 	var jAddr []byte
-	if routes[i].iSource != nil {
-		iAddr = routes[i].iSource.IP
+	if routes[i].iSourceIP != nil {
+		iAddr = routes[i].iSourceIP.IP
 	}
-	if routes[j].iSource != nil {
-		jAddr = routes[j].iSource.IP
+	if routes[j].iSourceIP != nil {
+		jAddr = routes[j].iSourceIP.IP
 	}
 	return bytes.Compare(iAddr, jAddr) != 1
 }

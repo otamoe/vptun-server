@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -9,6 +10,7 @@ import (
 	libgrpc "github.com/otamoe/go-library/grpc"
 	liblogger "github.com/otamoe/go-library/logger"
 	pb "github.com/otamoe/vptun-pb"
+	"github.com/spf13/viper"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -30,10 +32,13 @@ type (
 		clients               map[string]*GrpcClient
 		routes                Routes
 		logger                *zap.Logger
+		subnet                net.IPNet
+		subnetv6              bool
 	}
 )
 
 func GrpcHandlerRegister(ctx context.Context, routeSystem *RouteSystem, clientSystem *ClientSystem, clientShellSystem *ClientShellSystem, lc fx.Lifecycle) (grpcHandler *GrpcHandler, out libgrpc.OutServer, err error) {
+	subnet, _ := viper.Get("route.subnet").(net.IPNet)
 	ctx, cancel := context.WithCancel(ctx)
 	grpcHandler = &GrpcHandler{
 		logger:                liblogger.Get("grpc"),
@@ -45,6 +50,8 @@ func GrpcHandlerRegister(ctx context.Context, routeSystem *RouteSystem, clientSy
 		routes:                routeSystem.All(),
 		clientsByRouteAddress: map[string]*GrpcClient{},
 		clients:               map[string]*GrpcClient{},
+		subnet:                subnet,
+		subnetv6:              subnet.IP.To4() == nil,
 	}
 
 	lc.Append(fx.Hook{

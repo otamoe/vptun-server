@@ -2,14 +2,14 @@ package server
 
 import (
 	"context"
-	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
 	pb "github.com/otamoe/vptun-pb"
-	"github.com/spf13/viper"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -74,13 +74,12 @@ func (grpcHandler *GrpcHandler) Stream(handlerStreamServer pb.Handler_StreamServ
 	if err != nil {
 		return
 	}
-	subnet, _ := viper.Get("route.subnet").(net.IPNet)
 
 	// 发送 header
 	if err = handlerStreamServer.SendHeader(metadata.New(map[string]string{
 		"client-expired-at":    strconv.FormatInt(client.ExpiredAt, 10),
 		"client-route-address": client.RouteAddress,
-		"client-route-subnet":  subnet.String(),
+		"client-route-subnet":  grpcHandler.subnet.String(),
 	})); err != nil {
 		return
 	}
@@ -106,6 +105,11 @@ func (grpcHandler *GrpcHandler) Stream(handlerStreamServer pb.Handler_StreamServ
 			close:               atomic.NewBool(false),
 			closed:              make(chan struct{}),
 			shells:              map[string]*GrpcClientShell{},
+		}
+		if grpcHandler.subnetv6 {
+			grpcClient.layerParser = gopacket.NewDecodingLayerParser(layers.LayerTypeIPv6, &grpcClient.layerIPv6, &grpcClient.layerTCP, &grpcClient.layerUDP, &grpcClient.layerICMPv6)
+		} else {
+			grpcClient.layerParser = gopacket.NewDecodingLayerParser(layers.LayerTypeIPv4, &grpcClient.layerIPv4, &grpcClient.layerTCP, &grpcClient.layerUDP, &grpcClient.layerICMPv4)
 		}
 		grpcClient.ctx, grpcClient.cancel = context.WithCancel(handlerStreamServer.Context())
 	}

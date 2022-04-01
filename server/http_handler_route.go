@@ -13,12 +13,16 @@ import (
 
 type (
 	HttpHandlerRouteInput struct {
-		Source      string `json:"source,omitempty"`
-		Destination string `json:"destination,omitempty"`
-		Remark      string `json:"remark,omitempty"`
-		Action      string `json:"action,omitempty"`
-		State       string `json:"state,omitempty"`
-		ExpiredAt   int64  `json:"expiredAt,omitempty"`
+		Type            string `json:"type,omitempty"`
+		SourceIP        string `json:"sourceIP,omitempty"`
+		DestinationIP   string `json:"destinationIP,omitempty"`
+		SourcePort      uint32 `json:"sourcePort,omitempty"`
+		DestinationPort uint32 `json:"destinationPort,omitempty"`
+		Level           int32  `json:"level,omitempty"`
+		Remark          string `json:"remark,omitempty"`
+		Action          string `json:"action,omitempty"`
+		State           string `json:"state,omitempty"`
+		ExpiredAt       int64  `json:"expiredAt,omitempty"`
 	}
 )
 
@@ -39,22 +43,37 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 	var data *HttpHandlerRouteInput
 	route, err := httpHandler.routeSystem.Save(id, func(route *Route) (rRoute *Route, err error) {
 		data = &HttpHandlerRouteInput{
-			Source:      route.Route.Source,
-			Destination: route.Route.Destination,
-			Remark:      route.Route.Remark,
-			Action:      route.Route.Action.String(),
-			State:       route.Route.State.String(),
-			ExpiredAt:   route.Route.ExpiredAt,
+			Type:            route.Route.Type.String(),
+			SourceIP:        route.Route.SourceIP,
+			DestinationIP:   route.Route.DestinationIP,
+			SourcePort:      route.Route.SourcePort,
+			DestinationPort: route.Route.DestinationPort,
+			Level:           route.Route.Level,
+			Remark:          route.Route.Remark,
+			Action:          route.Route.Action.String(),
+			State:           route.Route.State.String(),
+			ExpiredAt:       route.Route.ExpiredAt,
 		}
 		if err = httpHandler.readJson(&body, data, r); err != nil {
 			return
 		}
 		rRoute = route.Clone()
 
-		// Source
-		if id == "" || data.Source != route.Route.Source {
+		if id == "" || data.Type != route.Route.Type.String() {
+			val, ok := pb.Route_Type_value[data.Type]
+			if !ok {
+				err = &ValidateError{
+					Name: "type",
+				}
+				return
+			}
+			rRoute = rRoute.WithType(pb.Route_Type(val))
+		}
+
+		// SourceIP
+		if id == "" || data.SourceIP != route.Route.SourceIP {
 			var ipNet *net.IPNet
-			if _, ipNet, err = net.ParseCIDR(data.Source); err != nil {
+			if _, ipNet, err = net.ParseCIDR(data.SourceIP); err != nil {
 				err = &ValidateError{
 					Name: "source",
 				}
@@ -66,19 +85,19 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 				}
 				return
 			}
-			rRoute = rRoute.WithSource(ipNet)
+			rRoute = rRoute.WithSourceIP(ipNet)
 		}
 
-		// Destination
-		if id == "" || data.Destination != route.Route.Destination {
+		// DestinationIP
+		if id == "" || data.DestinationIP != route.Route.DestinationIP {
 			var ipNet *net.IPNet
-			if _, ipNet, err = net.ParseCIDR(data.Destination); err != nil || ipNet == nil {
+			if _, ipNet, err = net.ParseCIDR(data.DestinationIP); err != nil || ipNet == nil {
 				err = &ValidateError{
 					Name: "destination",
 				}
 				return
 			}
-			rRoute = rRoute.WithDestination(ipNet)
+			rRoute = rRoute.WithDestinationIP(ipNet)
 		}
 
 		if data.Remark != route.Route.Remark {
@@ -90,6 +109,10 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 			}
 			rRoute = rRoute.WithRemark(data.Remark)
 		}
+
+		rRoute = rRoute.WithSourcePort(data.SourcePort)
+		rRoute = rRoute.WithDestinationPort(data.DestinationPort)
+		rRoute = rRoute.WithLevel(data.Level)
 
 		if id == "" || data.Action != route.Route.Action.String() {
 			val, ok := pb.Route_Action_value[data.Action]
@@ -136,8 +159,11 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 		libhttpMiddleware.LoggerFields(
 			r.Context(),
 			zap.String("data.id", dataId),
-			zap.String("data.source", data.Source),
-			zap.String("data.destination", data.Destination),
+			zap.String("data.type", data.Type),
+			zap.String("data.sourceIP", data.SourceIP),
+			zap.String("data.destinationIP", data.DestinationIP),
+			zap.Uint32("data.sourcePort", data.SourcePort),
+			zap.Uint32("data.destinationPort", data.DestinationPort),
 			zap.String("data.remark", data.Remark),
 			zap.String("data.action", data.Action),
 			zap.String("data.state", data.State),

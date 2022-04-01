@@ -158,14 +158,14 @@ func (routeSystem *RouteSystem) Save(id string, cb func(route *Route) (rRoute *R
 			}
 
 			// source 空
-			if route.Route.Source == "" {
+			if route.Route.SourceIP == "" {
 				err = &ValidateError{
 					Name: "source",
 				}
 				return
 			}
 			// key 空
-			if route.Route.Destination == "" {
+			if route.Route.DestinationIP == "" {
 				err = &ValidateError{
 					Name: "destination",
 				}
