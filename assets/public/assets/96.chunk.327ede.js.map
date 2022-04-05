@@ -1,0 +1,1 @@
+{"version":3,"file":"assets/96.chunk.327ede.js","mappings":";sJAEA","sources":["webpack://vptun-server-assets/./src/locale/en/index.ts"],"sourcesContent":["// import App from '@/locale/en/App'\n\nexport default {\n    // App\n}"],"names":[],"sourceRoot":""}

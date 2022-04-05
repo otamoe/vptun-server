@@ -1,0 +1,1 @@
+{"version":3,"file":"assets/559.chunk.b3be16.js","mappings":";uJAEA","sources":["webpack://vptun-server-assets/./src/locale/zh-Hans/index.ts"],"sourcesContent":["// import App from '@/locale/zh-Hans/App'\n\nexport default {\n    // App\n}"],"names":[],"sourceRoot":""}

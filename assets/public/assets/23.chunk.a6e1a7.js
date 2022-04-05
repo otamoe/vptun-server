@@ -1,0 +1,3 @@
+/*! For license information please see 23.chunk.a6e1a7.js.LICENSE.txt */
+"use strict";(self.webpackChunkvptun_server_assets=self.webpackChunkvptun_server_assets||[]).push([[23],{1023:(e,s,t)=>{t.r(s),t.d(s,{default:()=>c});var n=t(3613),r={id:"section-route-save",class:"route-section"},u=[(0,n._)("h1",null,"Route Save",-1)];const a={},c=(0,t(4485).Z)(a,[["render",function(e,s){return(0,n.wg)(),(0,n.iD)("section",r,u)}]])}}]);
+//# sourceMappingURL=23.chunk.a6e1a7.js.map

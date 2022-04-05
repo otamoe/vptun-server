@@ -1,0 +1,3 @@
+/*! For license information please see 526.chunk.f60223.js.LICENSE.txt */
+"use strict";(self.webpackChunkvptun_server_assets=self.webpackChunkvptun_server_assets||[]).push([[526],{1526:(e,s,n)=>{n.r(s),n.d(s,{default:()=>u});var r=n(3613),t={id:"main",class:"client-shell-main"};const a={},u=(0,n(4485).Z)(a,[["render",function(e,s){var n=(0,r.up)("RouterView");return(0,r.wg)(),(0,r.iD)("main",t,[(0,r.Wm)(n)])}]])}}]);
+//# sourceMappingURL=526.chunk.f60223.js.map

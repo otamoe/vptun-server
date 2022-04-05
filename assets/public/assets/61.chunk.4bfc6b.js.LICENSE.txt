@@ -1,0 +1,8 @@
+/*!
+ * Name: vptun-server-assets
+ * Theme URI: https://lianyue.org
+ * Version: 0.1.25
+ * Author: LianYue
+ * License: ISC
+ * Description:
+ */

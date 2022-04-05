@@ -1,0 +1,190 @@
+$body-color: #333;
+$body-background: #fafafa;
+$body-font-size: 14px;
+$body-line-height: 1.5;
+$body-font-family: system-ui,
+-apple-system,
+"Segoe UI",
+Roboto,
+"Helvetica Neue",
+Arial,
+"Noto Sans",
+sans-serif,
+"Apple Color Emoji",
+"Segoe UI Emoji",
+"Segoe UI Symbol",
+"Noto Color Emoji";
+$body-font-weight: 400;
+$link-color: #2196f3;
+$link-hover-color: #e91e63;
+$container-width-md: 960px;
+$container-width-lg: 1280px;
+$btns: ( default: ( color: #222, background: #eee, ), primary: ( color: #fff, background: #2196f3, ), secondary: ( color: #fff, background: #9e9e9e, ), success: ( color: #fff, background: #4caf50, ), danger: ( color: #fff, background: #f44336, ), warning: ( color: #fff, background: #f59300, ), info: ( color: #fff, background: #00bcd4, ), light: ( color: #262626, background: #dadada, ), dark: ( color: #262626, background: #fff, ), link: ( color: #2196f3, background: transparent, ), );
+$inputs: ( default: ( background:#fff, color:#333, border-color:#aaa, ), placeholder: ( color: #888, ), valid: ( border-color: #4caf50, ), invalid: ( border-color: #f44336, ), readonly: ( background: #f2f2f2, color: #666666, ), disabled: ( background: #eee, color: #777, ), );
+$alert-messages: ( default: ( color: #000, background: #fff, ), danger: ( color: #fff, background: #f44336, ), error: ( color: #fff, background: #f44336, ), warning: ( color: #fff, background: #f59300, ), success: ( color: #fff, background: #4caf50, ), info: ( color: #fff, background: #00bcd4, ));
+@mixin media-gt-xxs {
+    @media (min-width: (320px + 1px)) {
+        @content;
+    }
+}
+
+@mixin media-gt-xs {
+    @media (min-width: (480px + 1px)) {
+        @content;
+    }
+}
+
+@mixin media-gt-sm {
+    @media (min-width: (640px + 1px)) {
+        @content;
+    }
+}
+
+@mixin media-gt-md {
+    @media (min-width: (960px + 1px)) {
+        @content;
+    }
+}
+
+@mixin media-gt-lg {
+    @media (min-width: (1280px + 1px)) {
+        @content;
+    }
+}
+
+@mixin media-gt-xl {
+    @media (min-width: (1600px + 1px)) {
+        @content;
+    }
+}
+
+@mixin media-gt-xxl {
+    @media (min-width: (1920px + 1px)) {
+        @content;
+    }
+}
+
+@mixin media-lt-xxs {
+    @media (max-width: 320px) {
+        @content;
+    }
+}
+
+@mixin media-lt-xs {
+    @media (max-width: 480px) {
+        @content;
+    }
+}
+
+@mixin media-lt-sm {
+    @media (max-width: 640px) {
+        @content;
+    }
+}
+
+@mixin media-lt-md {
+    @media (max-width: 960px) {
+        @content;
+    }
+}
+
+@mixin media-lt-lg {
+    @media (max-width: 1280px) {
+        @content;
+    }
+}
+
+@mixin media-lt-xl {
+    @media (max-width: 1600px) {
+        @content;
+    }
+}
+
+@mixin media-lt-xxl {
+    @media (max-width: 1920px) {
+        @content;
+    }
+}
+
+@mixin media-eq-xxs {
+    @media (max-width: 320px) {
+        @content;
+    }
+}
+
+@mixin media-eq-xs {
+    @media (min-width: (320px + 1px)) and (max-width: 480px) {
+        @content;
+    }
+}
+
+@mixin media-eq-sm {
+    @media (min-width: (480px + 1px)) and (max-width: 640px) {
+        @content;
+    }
+}
+
+@mixin media-eq-md {
+    @media (min-width: (640px + 1px)) and (max-width: 960px) {
+        @content;
+    }
+}
+
+@mixin media-eq-lg {
+    @media (min-width: (960px + 1px)) and (max-width: 1280px) {
+        @content;
+    }
+}
+
+@mixin media-eq-xl {
+    @media (min-width: (1280px + 1px)) and (max-width: 1600px) {
+        @content;
+    }
+}
+
+@mixin media-eq-xxl {
+    @media (min-width: (1600px + 1px)) and (max-width: 1920px) {
+        @content;
+    }
+}
+
+@mixin clearfix {
+    &::after {
+        content: "";
+        display: table;
+        clear: both
+    }
+}
+
+@mixin content-none {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    display: block;
+    top: -2rem;
+}
+
+@mixin text-none {
+    font-size: 0;
+    line-height: 0;
+    text-indent: -9999rem;
+}
+
+// scss-docs-start color-functions
+// Tint a color: mix a color with white
+@function tint-color($color, $weight) {
+    @return mix(white, $color, $weight);
+}
+
+// Shade a color: mix a color with black
+@function shade-color($color, $weight) {
+    @return mix(black, $color, $weight);
+}
+
+// Shade the color if the weight is positive, else tint it
+@function shift-color($color, $weight) {
+    @return if($weight > 0, shade-color($color, $weight), tint-color($color, -$weight));
+}

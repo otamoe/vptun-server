@@ -1,0 +1,3 @@
+/*! For license information please see 873.chunk.ba2488.js.LICENSE.txt */
+"use strict";(self.webpackChunkvptun_server_assets=self.webpackChunkvptun_server_assets||[]).push([[873],{3873:(e,s,t)=>{t.r(s),t.d(s,{default:()=>c});var n=t(3613),r={id:"section-route-home",class:"route-section"},u=[(0,n._)("h1",null,"Route Home",-1)];const o={},c=(0,t(4485).Z)(o,[["render",function(e,s){return(0,n.wg)(),(0,n.iD)("section",r,u)}]])}}]);
+//# sourceMappingURL=873.chunk.ba2488.js.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"assets/231.chunk.7396f4.js","mappings":";uJAEA","sources":["webpack://vptun-server-assets/./src/locale/zh-Hant/index.ts"],"sourcesContent":["// import App from '@/locale/zh-Hant/App'\n\nexport default {\n    // App\n}"],"names":[],"sourceRoot":""}
