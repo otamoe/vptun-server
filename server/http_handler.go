@@ -57,7 +57,7 @@ func (httpHandler *HttpHandler) Handler(next http.Handler) http.Handler {
 	router.Handle("/api/client/{client}/shell", httpHandler.ListClientShell()).Methods("GET", "HEAD")
 	router.Handle("/api/client/{client}/shell", httpHandler.CreateClientShell()).Methods("POST", "PUT")
 	router.Handle("/api/client/{client}/shell/{shell}", httpHandler.ReadClientShell()).Methods("GET", "HEAD")
-	router.Handle("/api/client/{client}/shell/{shell}", httpHandler.UpdateClientShell()).Methods("GET", "HEAD")
+	router.Handle("/api/client/{client}/shell/{shell}", httpHandler.UpdateClientShell()).Methods("POST", "PUT")
 	router.Handle("/api/client/{client}/shell/{shell}", httpHandler.DeleteClientShell()).Methods("DELETE")
 
 	router.NotFoundHandler = next
@@ -152,6 +152,12 @@ func HttpHandlerRegister(routeSystem *RouteSystem, clientSystem *ClientSystem, c
 	}
 
 	out.Option = func(server *libhttp.Server) error {
+		// cors
+		corsMiddleware := &libhttpMiddleware.Cors{
+			Methods: []string{"HEAD", "GET", "POST", "PUT", "DELETE"},
+			Origins: []string{"*"},
+			MaxAge:  86400 * 30,
+		}
 		// 日志
 		loggerMiddleware := &libhttpMiddleware.Logger{
 			Logger:    liblogger.Get("http"),
@@ -188,16 +194,33 @@ func HttpHandlerRegister(routeSystem *RouteSystem, clientSystem *ClientSystem, c
 			})
 		}
 
-		// 静态文件
-		staticMiddleware := &libhttpMiddleware.Static{
+		// 公共文件目录
+		publicMiddleware := &libhttpMiddleware.Static{
+			MaxAge: 86400 * 30,
+			FS:     http.Dir(viper.GetString("http.public")),
+		}
+
+		// assets 文件
+		assetsMiddleware := &libhttpMiddleware.Static{
 			MaxAge:   86400 * 30,
 			FSPath:   "public",
-			FS:       assets.FS,
+			FS:       http.FS(assets.FS),
 			ModTime:  time.Date(2020, time.January, 1, 1, 0, 0, 0, time.UTC),
 			Redirect: "/index.html",
 		}
+
 		server.Handlers = append(
 			server.Handlers,
+			libhttp.HandlerOption{
+				Hosts:   []string{"*"},
+				Index:   40,
+				Handler: publicMiddleware.Handler,
+			},
+			libhttp.HandlerOption{
+				Hosts:   []string{"*"},
+				Index:   50,
+				Handler: corsMiddleware.Handler,
+			},
 			libhttp.HandlerOption{
 				Hosts:   []string{"*"},
 				Index:   100,
@@ -226,7 +249,7 @@ func HttpHandlerRegister(routeSystem *RouteSystem, clientSystem *ClientSystem, c
 			libhttp.HandlerOption{
 				Hosts:   []string{"*"},
 				Index:   1000,
-				Handler: staticMiddleware.Handler,
+				Handler: assetsMiddleware.Handler,
 			},
 		)
 		return nil

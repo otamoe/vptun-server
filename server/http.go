@@ -23,6 +23,7 @@ func init() {
 	libviper.SetDefault("http.tlsCA", path.Join(configDir, "server/http/ca.crt"), "Certification authority")
 	libviper.SetDefault("http.tlsCrt", path.Join(configDir, "server/http/server.crt"), "Credentials")
 	libviper.SetDefault("http.tlsKey", path.Join(configDir, "server/http/server.key"), "Private key")
+	libviper.SetDefault("http.public", path.Join(configDir, "public"), "public file directory")
 }
 
 func HttpTLSOption() (out libhttp.OutOption, err error) {

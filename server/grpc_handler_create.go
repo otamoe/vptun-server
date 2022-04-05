@@ -80,7 +80,7 @@ func (grpcHandler *GrpcHandler) Create(ctx context.Context, createRequest *pb.Cr
 			WithUserAgent(strings.Join(md.Get("user-agent"), ",")).
 			WithRouteAddress(routeAddress).
 			WithState(pb.State_AVAILABLE).
-			WithExpiredAt(time.Date(9001, time.January, 1, 0, 0, 0, 0, time.UTC))
+			WithExpiredAt(time.Date(9000, time.January, 1, 0, 0, 0, 0, time.UTC))
 		return
 	})
 	if err != nil {

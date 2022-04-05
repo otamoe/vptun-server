@@ -52,24 +52,27 @@ func (httpHandler *HttpHandler) saveClientShell(w http.ResponseWriter, r *http.R
 	}
 
 	// 客户端不在线
-	grpcClient := httpHandler.grpcHandler.GetClient(clientId)
-	if grpcClient == nil {
-		err := &HttpError{
-			Err:    errors.New("Client is offline"),
-			Status: http.StatusForbidden,
+	var grpcClient *GrpcClient
+	if id == "" {
+		grpcClient = httpHandler.grpcHandler.GetClient(clientId)
+		if grpcClient == nil {
+			err := &HttpError{
+				Err:    errors.New("Client is offline"),
+				Status: http.StatusForbidden,
+			}
+			httpHandler.writeErrorJson(err, w)
+			return
 		}
-		httpHandler.writeErrorJson(err, w)
-		return
-	}
 
-	// 客户端不支持
-	if !client.Shell {
-		err := &HttpError{
-			Err:    errors.New("Client does not support shell"),
-			Status: http.StatusForbidden,
+		// 客户端不支持
+		if !client.Shell {
+			err := &HttpError{
+				Err:    errors.New("Client does not support shell"),
+				Status: http.StatusForbidden,
+			}
+			httpHandler.writeErrorJson(err, w)
+			return
 		}
-		httpHandler.writeErrorJson(err, w)
-		return
 	}
 
 	clientShell, err := httpHandler.clientShellSystem.Save(clientId, id, func(clientShell *ClientShell) (rClientShell *ClientShell, err error) {
@@ -89,6 +92,7 @@ func (httpHandler *HttpHandler) saveClientShell(w http.ResponseWriter, r *http.R
 			}
 			return
 		}
+
 		if data.Timeout < 10 {
 			data.Timeout = 10
 		}
@@ -153,7 +157,7 @@ func (httpHandler *HttpHandler) ListClientShell() http.Handler {
 
 		ltId := r.URL.Query().Get("ltId")
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-		if limit <= 0 || limit >= 500 {
+		if limit <= 0 || limit >= 1000 {
 			limit = 50
 		}
 

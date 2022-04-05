@@ -206,7 +206,7 @@ func (routeSystem *RouteSystem) Save(id string, cb func(route *Route) (rRoute *R
 	} else {
 		for k, v := range routeSystem.routes {
 			if v.Id == route.Id {
-				routeSystem.routes[k] = v
+				routeSystem.routes[k] = route
 				break
 			}
 		}

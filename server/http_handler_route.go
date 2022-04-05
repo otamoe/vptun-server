@@ -3,6 +3,8 @@ package server
 import (
 	"net"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -75,13 +77,13 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 			var ipNet *net.IPNet
 			if _, ipNet, err = net.ParseCIDR(data.SourceIP); err != nil {
 				err = &ValidateError{
-					Name: "source",
+					Name: "sourceIP",
 				}
 				return
 			}
 			if ipNet == nil {
 				err = &ValidateError{
-					Name: "source",
+					Name: "sourceIP",
 				}
 				return
 			}
@@ -93,7 +95,7 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 			var ipNet *net.IPNet
 			if _, ipNet, err = net.ParseCIDR(data.DestinationIP); err != nil || ipNet == nil {
 				err = &ValidateError{
-					Name: "destination",
+					Name: "destinationIP",
 				}
 				return
 			}
@@ -137,8 +139,8 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 		}
 
 		if id == "" || data.ExpiredAt != route.Route.ExpiredAt {
-			mint := time.Date(999, time.January, 1, 0, 0, 0, 0, time.UTC)
-			maxt := time.Date(9001, time.January, 1, 0, 0, 0, 0, time.UTC)
+			mint := time.Date(1000, time.January, 1, 0, 0, 0, 0, time.UTC)
+			maxt := time.Date(9000, time.January, 1, 0, 0, 0, 0, time.UTC)
 			if mint.Unix() > data.ExpiredAt || maxt.Unix() < data.ExpiredAt {
 				err = &ValidateError{
 					Name: "expiredAt",
@@ -182,6 +184,181 @@ func (httpHandler *HttpHandler) saveRoute(w http.ResponseWriter, r *http.Request
 func (httpHandler *HttpHandler) ListRoute() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		routes := httpHandler.routeSystem.All()
+
+		// 过滤器 type
+		if r.URL.Query().Has("type") {
+			typ := strings.TrimSpace(strings.ToUpper(r.URL.Query().Get("type")))
+			typInt, ok := pb.Route_Action_value[typ]
+			if !ok {
+				i, _ := strconv.ParseInt(typ, 10, 32)
+				typInt = int32(i)
+			}
+			pbTyp := pb.Route_Type(typInt)
+
+			oRoutes := Routes{}
+			for _, route := range routes {
+				if route.Type == pbTyp {
+					oRoutes = append(oRoutes, route)
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 过滤器 sourceIP
+		if r.URL.Query().Has("sourceIP") {
+			sourceIP := strings.TrimSpace(strings.ToLower(r.URL.Query().Get("sourceIP")))
+
+			oRoutes := Routes{}
+			if _, ipNet, _ := net.ParseCIDR(sourceIP); ipNet != nil {
+				for _, route := range routes {
+					if route.iSourceIP != nil && ipNet.Contains(route.iSourceIP.IP) {
+						oRoutes = append(oRoutes, route)
+					}
+				}
+			} else {
+				for _, route := range routes {
+					if route.SourceIP == sourceIP {
+						oRoutes = append(oRoutes, route)
+					}
+				}
+			}
+			routes = oRoutes
+		}
+		// 过滤器 destinationIP
+		if r.URL.Query().Has("destinationIP") {
+			destinationIP := strings.TrimSpace(strings.ToLower(r.URL.Query().Get("destinationIP")))
+
+			oRoutes := Routes{}
+			if _, ipNet, _ := net.ParseCIDR(destinationIP); ipNet != nil {
+				for _, route := range routes {
+					if route.iDestinationIP != nil && ipNet.Contains(route.iDestinationIP.IP) {
+						oRoutes = append(oRoutes, route)
+					}
+				}
+			} else {
+				for _, route := range routes {
+					if route.DestinationIP == destinationIP {
+						oRoutes = append(oRoutes, route)
+					}
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 过滤器 action
+		if r.URL.Query().Has("action") {
+			action := strings.TrimSpace(strings.ToUpper(r.URL.Query().Get("action")))
+			actionInt, ok := pb.Route_Action_value[action]
+			if !ok {
+				i, _ := strconv.ParseInt(action, 10, 32)
+				actionInt = int32(i)
+			}
+			pbAction := pb.Route_Action(actionInt)
+
+			oRoutes := Routes{}
+			for _, route := range routes {
+				if route.Action == pbAction {
+					oRoutes = append(oRoutes, route)
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 过滤器 state
+		if r.URL.Query().Has("state") {
+			state := strings.TrimSpace(strings.ToUpper(r.URL.Query().Get("state")))
+			stateInt, ok := pb.State_value[state]
+			if !ok {
+				i, _ := strconv.ParseInt(state, 10, 32)
+				stateInt = int32(i)
+			}
+			pbState := pb.State(stateInt)
+
+			oRoutes := Routes{}
+			for _, route := range routes {
+				if route.State == pbState {
+					oRoutes = append(oRoutes, route)
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 搜索 search
+		if search := strings.TrimSpace(strings.ToLower(r.URL.Query().Get("search"))); search != "" {
+			_, ipNet, _ := net.ParseCIDR(search)
+			ip := net.ParseIP(search)
+			oRoutes := Routes{}
+			for _, route := range routes {
+				if ipNet != nil && route.iSourceIP != nil && route.iSourceIP.Contains(ipNet.IP) {
+					oRoutes = append(oRoutes, route)
+				} else if ipNet != nil && route.iDestinationIP != nil && route.iDestinationIP.Contains(ipNet.IP) {
+					oRoutes = append(oRoutes, route)
+				} else if len(ip) != 0 && route.iSourceIP != nil && route.iSourceIP.Contains(ip) {
+					oRoutes = append(oRoutes, route)
+				} else if len(ip) != 0 && route.iDestinationIP != nil && route.iDestinationIP.Contains(ip) {
+					oRoutes = append(oRoutes, route)
+				} else if strings.Index(strings.TrimSpace(strings.ToLower(route.Remark)), search) != -1 {
+					oRoutes = append(oRoutes, route)
+				} else if strings.Index(route.SourceIP, search) != -1 {
+					oRoutes = append(oRoutes, route)
+				} else if strings.Index(route.DestinationIP, search) != -1 {
+					oRoutes = append(oRoutes, route)
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 过滤器 gteCreatedAt
+		if queryGteCreatedAt := r.URL.Query().Get("gteCreatedAt"); queryGteCreatedAt != "" {
+			queryGteCreatedAtTime, _ := strconv.ParseInt(queryGteCreatedAt, 10, 64)
+			oRoutes := Routes{}
+			for _, route := range routes {
+				if route.CreatedAt >= queryGteCreatedAtTime {
+					oRoutes = append(oRoutes, route)
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 过滤器 gteUpdatedAt
+		if queryGteUpdatedAt := r.URL.Query().Get("gteUpdatedAt"); queryGteUpdatedAt != "" {
+			queryGteUpdatedAtTime, _ := strconv.ParseInt(queryGteUpdatedAt, 10, 64)
+			oRoutes := Routes{}
+			for _, route := range routes {
+				if route.UpdatedAt >= queryGteUpdatedAtTime {
+					oRoutes = append(oRoutes, route)
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 过滤器 gteExpiredAt
+		if queryGteExpiredAt := r.URL.Query().Get("gteExpiredAt"); queryGteExpiredAt != "" {
+			queryGteExpiredAtTime, _ := strconv.ParseInt(queryGteExpiredAt, 10, 64)
+			oRoutes := Routes{}
+			for _, route := range routes {
+				if route.ExpiredAt >= queryGteExpiredAtTime {
+					oRoutes = append(oRoutes, route)
+				}
+			}
+			routes = oRoutes
+		}
+
+		// 限制 读取数量
+		if queryLimit := r.URL.Query().Get("limit"); queryLimit != "" {
+			if queryLimitInt, _ := strconv.Atoi(queryLimit); queryLimitInt > 0 {
+				oRoutes := Routes{}
+				for _, route := range routes {
+					if len(oRoutes) < queryLimitInt {
+						oRoutes = append(oRoutes, route)
+					} else {
+						break
+					}
+				}
+				routes = oRoutes
+			}
+		}
+
 		httpHandler.writeJson(http.StatusOK, &HttpHandlerResponseSuccess{Data: routes}, w)
 		return
 	})

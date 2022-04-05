@@ -7,7 +7,7 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2103.2
 	github.com/google/gopacket v1.1.19
 	github.com/gorilla/mux v1.8.0
-	github.com/otamoe/go-library v0.3.17
+	github.com/otamoe/go-library v0.4.2
 	github.com/otamoe/vptun-pb v0.4.3
 	github.com/pingcap/log v0.0.0-20211215031037-e024ba4eb0ee
 	github.com/prometheus/client_golang v1.11.0

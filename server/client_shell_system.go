@@ -33,11 +33,14 @@ func (clientShellSystem *ClientShellSystem) List(clientId string, ltId string, l
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchValues = false
 		opts.Reverse = true
+		opts.Prefix = clientShellFieldDBKey(clientId, "", ClientShellFieldCreatedAt)
 		it := txn.NewIterator(opts)
 		defer it.Close()
+		if ltId == "" {
+			ltId = NewID(time.Date(9999, time.December, 12, 31, 0, 0, 0, time.UTC))
+		}
 		seek := clientShellFieldDBKey(clientId, ltId, ClientShellFieldCreatedAt)
-		prefix := clientShellFieldDBKey(clientId, "", ClientShellFieldCreatedAt)
-		for it.Seek(seek); it.ValidForPrefix(prefix) && len(clientShells) < limit; it.Next() {
+		for it.Seek(seek); it.ValidForPrefix(opts.Prefix) && len(clientShells) < limit; it.Next() {
 			item := it.Item()
 			// key 相同
 			if bytes.Equal(seek, item.Key()) {
