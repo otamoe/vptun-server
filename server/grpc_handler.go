@@ -60,13 +60,15 @@ func GrpcHandlerRegister(ctx context.Context, routeSystem *RouteSystem, clientSy
 			go func() {
 				t := time.NewTicker(time.Second * 5)
 				defer t.Stop()
-				select {
-				case <-t.C:
-					grpcHandler.mux.Lock()
-					grpcHandler.routes = grpcHandler.routeSystem.All()
-					grpcHandler.mux.Unlock()
-				case <-grpcHandler.ctx.Done():
-					return
+				for {
+					select {
+					case <-t.C:
+						grpcHandler.mux.Lock()
+						grpcHandler.routes = grpcHandler.routeSystem.All()
+						grpcHandler.mux.Unlock()
+					case <-grpcHandler.ctx.Done():
+						return
+					}
 				}
 			}()
 			return nil
