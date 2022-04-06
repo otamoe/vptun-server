@@ -29,7 +29,7 @@
         </FormGroup>
         <FormGroup>
           <FormLabel for="timeout" :block="true">{{$t('Timeout')}}</FormLabel>
-          <FormInput id="timeout" name="timeout" :block="true" type="number" :disabled="state.id !== ''" v-model="state.timeout"></FormInput>
+          <FormInput id="timeout" name="timeout" :block="true" type="number" :disabled="state.id !== ''" v-model.number="state.timeout"></FormInput>
         </FormGroup>
         <FormGroup v-if="state.id">
           <FormLabel for="created-at" :block="true">{{$t('Created at')}}</FormLabel>

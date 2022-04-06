@@ -16,7 +16,7 @@
         </FormGroup>
         <FormGroup>
           <FormLabel for="source-port" :block="true">{{$t('Source port')}}</FormLabel>
-          <FormInput id="source-port" name="source-port" :block="true" type="number" v-model="state.sourcePort"></FormInput>
+          <FormInput id="source-port" name="source-port" :block="true" type="number" v-model.number="state.sourcePort"></FormInput>
         </FormGroup>
         <FormGroup>
           <FormLabel for="destination-ip" :block="true">{{$t('Destination IP')}}</FormLabel>
@@ -24,7 +24,7 @@
         </FormGroup>
         <FormGroup>
           <FormLabel for="destination-port" :block="true">{{$t('Destination port')}}</FormLabel>
-          <FormInput id="destination-port" name="destination-port" :block="true" type="number" v-model="state.destinationPort"></FormInput>
+          <FormInput id="destination-port" name="destination-port" :block="true" type="number" v-model.number="state.destinationPort"></FormInput>
         </FormGroup>
         <FormGroup>
           <FormLabel for="type" :block="true">{{$t('Type')}}</FormLabel>
@@ -51,7 +51,7 @@
         </FormGroup>
         <FormGroup>
           <FormLabel for="level" :block="true">{{$t('Level')}}</FormLabel>
-          <FormInput id="level" name="level" :block="true" type="number" v-model="state.level"></FormInput>
+          <FormInput id="level" name="level" :block="true" type="number" v-model.number="state.level"></FormInput>
         </FormGroup>
         <FormGroup v-if="state.id">
           <FormLabel for="created-at" :block="true">{{$t('Created at')}}</FormLabel>
