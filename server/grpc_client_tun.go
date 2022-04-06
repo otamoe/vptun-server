@@ -1,10 +1,10 @@
 package server
 
 import (
+	"time"
+
 	pb "github.com/otamoe/vptun-pb"
 	"go.uber.org/zap"
-	"golang.org/x/net/ipv4"
-	"golang.org/x/net/ipv6"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
@@ -15,22 +15,8 @@ func (grpcClient *GrpcClient) OnTun(tunRequest *pb.TunRequest) (err error) {
 	}
 	// 长度不正确
 	if len(tunRequest.Data) > 4096 {
-		err = grpc.Errorf(codes.InvalidArgument, "Unknown address version")
+		err = grpc.Errorf(codes.InvalidArgument, "Packet too long")
 		return
-	}
-
-	if grpcClient.grpcHandler.subnetv6 {
-		// ipv6
-		if tunRequest.Data[0]>>4 != ipv6.Version {
-			err = grpc.Errorf(codes.InvalidArgument, "Unknown address version")
-			return
-		}
-	} else {
-		// ipv4
-		if tunRequest.Data[0]>>4 != ipv4.Version {
-			err = grpc.Errorf(codes.InvalidArgument, "Unknown address version")
-			return
-		}
 	}
 
 	// 解析包
@@ -50,25 +36,25 @@ func (grpcClient *GrpcClient) OnTun(tunRequest *pb.TunRequest) (err error) {
 	}
 	grpcClient.logger("tun", true, err, fields...)
 
+	// 解析包错误
 	if err != nil {
+		err = nil
 		return
 	}
 
 	// 是自己直接返回给自己
-	if !grpcClient.IRouteAddress.Equal(grpcClientLayerParsed.DestinationIP) {
+	if grpcClient.IRouteAddress.Equal(grpcClientLayerParsed.DestinationIP) {
 		err = grpcClient.Response(&pb.StreamResponse{Tun: &pb.TunResponse{Data: tunRequest.Data}})
 		return
 	}
 
 	// 源 ip 不匹配
 	if !grpcClient.IRouteAddress.Equal(grpcClientLayerParsed.SourceIP) {
-		err = grpc.Errorf(codes.InvalidArgument, "Source IP address does not match")
 		return
 	}
 
 	// 不在子网内
-	if grpcClient.grpcHandler.subnet.Contains(grpcClientLayerParsed.DestinationIP) {
-		err = grpc.Errorf(codes.InvalidArgument, "Destination IP address does not match")
+	if !grpcClient.grpcHandler.subnet.Contains(grpcClientLayerParsed.DestinationIP) {
 		return
 	}
 
@@ -83,10 +69,40 @@ func (grpcClient *GrpcClient) OnTun(tunRequest *pb.TunRequest) (err error) {
 		return
 	}
 
+	sessionKey := SessionKey{
+		Type:            grpcClientLayerParsed.Type,
+		SourcePort:      grpcClientLayerParsed.SourcePort,
+		DestinationIP:   grpcClientLayerParsed.DestinationIP.String(),
+		DestinationPort: grpcClientLayerParsed.DestinationPort,
+	}
+
+	// 是否路由通过
+	var ok bool
+
+	// 查找 目标方 session
+	{
+		dstGrpcClient.mux.Lock()
+		dstSessionKey := SessionKey{
+			Type:            grpcClientLayerParsed.Type,
+			SourcePort:      grpcClientLayerParsed.DestinationPort,
+			DestinationIP:   grpcClientLayerParsed.SourceIP.String(),
+			DestinationPort: grpcClientLayerParsed.SourcePort,
+		}
+		if _, ok = dstGrpcClient.sessions[dstSessionKey]; ok {
+			dstGrpcClient.sessions[dstSessionKey] = time.Now()
+		}
+		dstGrpcClient.mux.Unlock()
+	}
+
 	// 路由不通过
-	if !grpcClient.routesOK(routes, grpcClientLayerParsed, dstGrpcClient) {
+	if !ok && !grpcClient.routesOK(routes, grpcClientLayerParsed, dstGrpcClient) {
 		return
 	}
+
+	// 储存 自己的 sessions
+	grpcClient.mux.Lock()
+	grpcClient.sessions[sessionKey] = time.Now()
+	grpcClient.mux.Unlock()
 
 	// 发送给对方
 	err = dstGrpcClient.Response(&pb.StreamResponse{Tun: &pb.TunResponse{Data: tunRequest.Data}})
@@ -137,27 +153,5 @@ func (grpcClient *GrpcClient) routesOK(routes Routes, grpcClientLayerParsed *Grp
 	return
 }
 
-// parser := gopacket.NewDecodingLayerParser(layers.LayerTypeIPv4, &ip4, &tcp, &udp, &icmp)
-// // decoded := []gopacket.LayerType{}
-// // parser.DecodeLayers(b[4:], &decoded)
-
-// // fmt.Println(ip4.SrcIP)
-// // fmt.Println(ip4.DstIP)
-// // fmt.Println(tcp.SrcPort)
-// // fmt.Println(tcp.DstPort)
-// // fmt.Println(udp.SrcPort)
-// // fmt.Println(udp.DstPort)
-// for _, layerType := range decoded {
-// 	switch layerType {
-// 	case layers.LayerTypeIPv4:
-// 		fmt.Println("    IP4 ", ip4.SrcIP, ip4.DstIP)
-// 	case layers.LayerTypeICMPv4:
-// 		fmt.Println("    ICMP ")
-// 	case layers.LayerTypeUDP:
-// 		fmt.Println("    UDP ", udp.SrcPort, udp.DstPort)
-// 	case layers.LayerTypeTCP:
-// 		fmt.Println("    TCP ", tcp.SrcPort, tcp.DstPort)
-// 	}
-// }
-// fmt.Println("   ")
-// fmt.Println("   ")
+// SessionKey s
+// sessionID := grpcClientLayerParsed.Type.String() + ":" + grpcClientLayerParsed.SourceIP.String() + ":" + strconv.FormatUint(uint64(grpcClientLayerParsed.SourcePort), 10)

@@ -41,6 +41,8 @@ type (
 		response chan *pb.StreamResponse
 		shells   map[string]*GrpcClientShell
 
+		sessions map[SessionKey]time.Time
+
 		layerIPv4   layers.IPv4
 		layerIPv6   layers.IPv6
 		layerICMPv4 layers.ICMPv4
@@ -48,6 +50,12 @@ type (
 		layerTCP    layers.TCP
 		layerUDP    layers.UDP
 		layerParser *gopacket.DecodingLayerParser
+	}
+	SessionKey struct {
+		Type            pb.Route_Type
+		SourcePort      uint32
+		DestinationIP   string
+		DestinationPort uint32
 	}
 )
 
@@ -158,6 +166,30 @@ func (grpcClient *GrpcClient) runRequest() (err error) {
 	}
 }
 
+func (grpcClient *GrpcClient) runSession() (err error) {
+	t := time.NewTicker(time.Minute * 5)
+	defer t.Stop()
+	for {
+		select {
+		case <-grpcClient.ctx.Done():
+			return
+		case <-t.C:
+			// 剔除半小时没活动的 session
+			grpcClient.mux.Lock()
+			unix := time.Now().Unix()
+			sessionKeys := []SessionKey{}
+			for k, v := range grpcClient.sessions {
+				if v.Unix()+1800 < unix {
+					sessionKeys = append(sessionKeys, k)
+				}
+			}
+			for _, v := range sessionKeys {
+				delete(grpcClient.sessions, v)
+			}
+			grpcClient.mux.Unlock()
+		}
+	}
+}
 func (grpcClient *GrpcClient) runOnline() (err error) {
 	defer func() {
 		go grpcClient.Close(err)

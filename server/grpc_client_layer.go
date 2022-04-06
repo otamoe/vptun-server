@@ -47,8 +47,7 @@ func (grpcClient *GrpcClient) layerParse(data []byte) (grpcClientLayerParsed *Gr
 		}
 	}
 	if grpcClientLayerParsed.Type == pb.Route_NONE || grpcClientLayerParsed.SourceIP.IsUnspecified() || grpcClientLayerParsed.DestinationIP.IsUnspecified() {
-		grpcClientLayerParsed = nil
-		err = grpc.Errorf(codes.InvalidArgument, "Unknown address version")
+		err = grpc.Errorf(codes.InvalidArgument, "Parse packet error")
 	}
 	return
 }

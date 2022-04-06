@@ -1,0 +1,25 @@
+# vi /etc/systemd/system/vptun-server.service
+# systemctl daemon-reload
+# systemctl start vptun-server.service
+# systemctl stop vptun-server.service
+# systemctl restart vptun-server.service
+# systemctl enable vptun-server.service
+# systemctl status vptun-server.service
+# journalctl -a -r -n 50 -u vptun-server.service
+# journalctl -a -r -n 50 -u vptun-server.service
+# journalctl --boot -n 500 -u vptun-server.service
+# journalctl --boot -n 500 -u vptun-server.service  -o short > ~/vptun-server.log
+# journalctl --boot -n 500 -u vptun-server.service  -o short > ~/vptun-server.log
+[Unit]
+Description=VPTun Server
+After=network.target
+
+[Service]
+User=root
+Group=root
+ExecStart=/root/vptun-server
+Restart=always
+RestartSec=30s
+
+[Install]
+WantedBy=multi-user.target

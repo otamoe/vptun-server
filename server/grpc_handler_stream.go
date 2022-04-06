@@ -101,6 +101,7 @@ func (grpcHandler *GrpcHandler) Stream(handlerStreamServer pb.Handler_StreamServ
 			handlerStreamServer: handlerStreamServer,
 			grpcHandler:         grpcHandler,
 			logger:              wLogger,
+			sessions:            make(map[SessionKey]time.Time),
 			response:            make(chan *pb.StreamResponse, 4),
 			close:               atomic.NewBool(false),
 			closed:              make(chan struct{}),
@@ -150,6 +151,9 @@ func (grpcHandler *GrpcHandler) Stream(handlerStreamServer pb.Handler_StreamServ
 
 	// 运行在线
 	go grpcClient.runOnline()
+
+	// 运行 Session
+	go grpcClient.runSession()
 
 	// 结束
 	<-grpcClient.ctx.Done()

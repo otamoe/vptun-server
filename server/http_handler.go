@@ -19,6 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type (
@@ -169,9 +170,13 @@ func HttpHandlerRegister(routeSystem *RouteSystem, clientSystem *ClientSystem, c
 		if password == "" {
 			password = string(libutils.RandByte(16, libutils.RandAlphaNumber))
 		}
+		username := viper.GetString("http.username")
+
+		logger.Info("http.login", zap.String("username", username), zap.String("password", password))
+
 		basicAuthMiddleware := &libhttpMiddleware.BasicAuth{
 			Auths: map[string]string{
-				viper.GetString("http.username"): password,
+				username: password,
 			},
 		}
 

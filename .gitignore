@@ -20,4 +20,5 @@
 !.prettierignore
 Icon
 node_modules
+vptun-server
 _*

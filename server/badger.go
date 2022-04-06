@@ -18,7 +18,6 @@ func init() {
 	baseDir := path.Join(userHomeDir, ".vptun/server/badger")
 
 	defaultOptions := libbadger.DefaultOptions()
-	viper.AddConfigPath("$HOME/.vptun/server/badger")
 	libviper.SetDefault("badger.indexDir", path.Join(baseDir, "index"), "Badger index dir")
 	libviper.SetDefault("badger.valueDir", path.Join(baseDir, "value"), "Badger value dir")
 	libviper.SetDefault("badger.memTableSize", defaultOptions.MemTableSize, "Badger mem table size")

@@ -40,7 +40,12 @@ func main() {
 	liblogger.Viper()
 
 	// fx 只显示警告
-	// liblogger.SetLevel("fx", zap.WarnLevel)
+	liblogger.SetLevel("fx", zap.WarnLevel)
+
+	// config file
+	if configFileUsed := viper.ConfigFileUsed(); configFileUsed != "" {
+		logger.Info("Config File", zap.String("path", configFileUsed))
+	}
 
 	// sync
 	defer liblogger.Core().Sync()

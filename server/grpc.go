@@ -21,9 +21,7 @@ func init() {
 	}
 	configDir := path.Join(userHomeDir, ".vptun")
 
-	viper.AddConfigPath("$HOME/.vptun/server/grpc")
-
-	libviper.SetDefault("grpc.listenAddress", "127.0.0.1:9443", "Listen address")
+	libviper.SetDefault("grpc.listenAddress", ":9443", "Listen address")
 	libviper.SetDefault("grpc.maxConnectionIdle", time.Minute*5, "Max connection idle")
 	libviper.SetDefault("grpc.maxConnectionAge", time.Duration(0), "Max connection age")
 	libviper.SetDefault("grpc.maxConnectionAgeGrace", time.Duration(0), "Max connection age grace")

@@ -16,7 +16,6 @@ func init() {
 		panic(err)
 	}
 	configDir := path.Join(userHomeDir, ".vptun")
-	viper.AddConfigPath("$HOME/.vptun/server/http")
 	libviper.SetDefault("http.listenAddress", ":8443", "HTTP listen address")
 	libviper.SetDefault("http.username", "admin", "Admin username")
 	libviper.SetDefault("http.password", "", "Admin password")
