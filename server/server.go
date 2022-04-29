@@ -19,6 +19,7 @@ var ErrServerCertificate = errors.New("Server certificate")
 func New() fx.Option {
 	return fx.Options(
 		libgrpc.New(),
+		fx.Provide(GrpcEnforcementPolicyServerOption),
 		fx.Provide(GrpcKeepaliveParamsServerOption),
 		fx.Provide(GrpcMaxConcurrentStreamsServerOption),
 		fx.Provide(GrpcConnectionTimeoutServerOption),

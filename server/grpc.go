@@ -22,11 +22,11 @@ func init() {
 	configDir := path.Join(userHomeDir, ".vptun")
 
 	libviper.SetDefault("grpc.listenAddress", ":9443", "Listen address")
-	libviper.SetDefault("grpc.maxConnectionIdle", time.Minute*5, "Max connection idle")
+	libviper.SetDefault("grpc.maxConnectionIdle", time.Minute*6, "Max connection idle")
 	libviper.SetDefault("grpc.maxConnectionAge", time.Duration(0), "Max connection age")
-	libviper.SetDefault("grpc.maxConnectionAgeGrace", time.Duration(0), "Max connection age grace")
-	libviper.SetDefault("grpc.time", time.Minute*4, "Ping interval")
-	libviper.SetDefault("grpc.timeout", time.Second*30, "Ping timeout")
+	libviper.SetDefault("grpc.maxConnectionAgeGrace", time.Second*5, "Max connection age grace")
+	libviper.SetDefault("grpc.time", time.Minute*5, "Ping interval")
+	libviper.SetDefault("grpc.timeout", time.Second*20, "Ping timeout")
 
 	libviper.SetDefault("grpc.connectionTimeout", time.Second*30, "Connection timeout")
 
@@ -44,6 +44,14 @@ func GrpcKeepaliveParamsServerOption() (out libgrpc.OutServerOption) {
 		Time:                  viper.GetDuration("grpc.time"),
 		Timeout:               viper.GetDuration("grpc.timeout"),
 	})
+	return
+}
+func GrpcEnforcementPolicyServerOption() (out libgrpc.OutServerOption) {
+	var kaep = keepalive.EnforcementPolicy{
+		MinTime:             5 * time.Second,
+		PermitWithoutStream: true,
+	}
+	out.Option = grpc.KeepaliveEnforcementPolicy(kaep)
 	return
 }
 
