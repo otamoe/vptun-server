@@ -256,6 +256,8 @@ github.com/otamoe/go-library v0.4.1 h1:zde3stxoGB2w+aoKCPaGChBcqEUxrJhmVGEGDr/5+
 github.com/otamoe/go-library v0.4.1/go.mod h1:9RFRzlV31S/HVF5DqSRPiF9llHfu4rbuCCECUOAY7H4=
 github.com/otamoe/go-library v0.4.2 h1:+P0FKIteUccn1zQS9c0W4j72AKfLEJGEG0a6d83deE8=
 github.com/otamoe/go-library v0.4.2/go.mod h1:9RFRzlV31S/HVF5DqSRPiF9llHfu4rbuCCECUOAY7H4=
+github.com/otamoe/go-library v0.4.4 h1:dZw/PzewrJXAP6wQplxc0ozGyZI6ImjwvP4q86Ngkkk=
+github.com/otamoe/go-library v0.4.4/go.mod h1:7CGFG3UDfZd9aW2141aYCEvJkfn9Hj9AjkbRI1NT7I8=
 github.com/otamoe/vptun-pb v0.2.1 h1:eo8DtWZkRRfIv887okxW2ygx5iImS4nN1mLaqQMltoE=
 github.com/otamoe/vptun-pb v0.2.1/go.mod h1:SCf+4RU0sBan9RGXiHquGIYzGV+4LHkVqrALAKsvWIE=
 github.com/otamoe/vptun-pb v0.2.2 h1:D7247PQMRxlJ196MEeP0badBZypJAminTvhHqq4b9pQ=
@@ -290,6 +292,8 @@ github.com/otamoe/vptun-pb v0.4.2 h1:Fxm7jcqR0y8MldVyj9LDuVVZQOqvJLgV9oP0UHlHq+M
 github.com/otamoe/vptun-pb v0.4.2/go.mod h1:bG9LmwSM/Us7hmVwgbakiDTT2YRqnPbomQ3tmvVxLCA=
 github.com/otamoe/vptun-pb v0.4.3 h1:hzJrtTJft1kblhBgO6KBANDNlKPpmaShy75J5t4lqLs=
 github.com/otamoe/vptun-pb v0.4.3/go.mod h1:bG9LmwSM/Us7hmVwgbakiDTT2YRqnPbomQ3tmvVxLCA=
+github.com/otamoe/vptun-pb v0.5.3 h1:4AXXKtw/vTzpYI57uHSVKuJEhI14D5wmnZTPxQlthps=
+github.com/otamoe/vptun-pb v0.5.3/go.mod h1:bG9LmwSM/Us7hmVwgbakiDTT2YRqnPbomQ3tmvVxLCA=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pelletier/go-toml v1.9.4 h1:tjENF6MfZAg8e4ZmZTeWaWiT2vXtsoO6+iuOjFhECwM=
 github.com/pelletier/go-toml v1.9.4/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=

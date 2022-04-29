@@ -119,6 +119,15 @@ func (grpcClient *GrpcClient) runRequest() (err error) {
 		request, err = grpcClient.handlerStreamServer.Recv()
 		fields := []zap.Field{}
 		if request != nil {
+			if request.Ping != nil {
+				fields = append(
+					fields,
+					zap.Bool("requestPingPong", request.Ping.Pong),
+				)
+				if err == nil {
+					err = grpcClient.OnPing(request.Ping)
+				}
+			}
 			if request.Tun != nil {
 				fields = append(
 					fields,
