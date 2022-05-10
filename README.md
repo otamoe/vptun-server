@@ -47,7 +47,7 @@ go build
 git clone git@github.com:otamoe/vptun-client.git
 cd vptun-client
 go build
-./vptun-client --grpc.targetaddress=127.0.0.1:9443
+sudo ./vptun-client --grpc.targetaddress=127.0.0.1:9443
 ```
 
 
