@@ -30,12 +30,9 @@ var (
 	}
 )
 
-func (clientShell *ClientShell) Clone() (rClientShell *ClientShell) {
-	if clientShell == nil {
-		return nil
-	}
+func (clientShell ClientShell) Clone() (rClientShell *ClientShell) {
 	rClientShell = &ClientShell{}
-	*rClientShell = *clientShell
+	*rClientShell = clientShell
 	return
 }
 

@@ -9,7 +9,6 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/otamoe/go-library v0.4.4
 	github.com/otamoe/vptun-pb v0.5.3
-	github.com/pingcap/log v0.0.0-20211215031037-e024ba4eb0ee
 	github.com/prometheus/client_golang v1.11.0
 	github.com/spf13/viper v1.10.1
 	go.etcd.io/etcd v3.3.27+incompatible

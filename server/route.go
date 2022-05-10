@@ -23,12 +23,9 @@ var ErrRouteNotFound = &NotFoundError{
 	Name: "Route",
 }
 
-func (route *Route) Clone() (rRoute *Route) {
-	if route == nil {
-		return nil
-	}
+func (route Route) Clone() (rRoute *Route) {
 	rRoute = &Route{}
-	*rRoute = *route
+	*rRoute = route
 	rRoute.Route = &pb.Route{}
 
 	if route.Route != nil {

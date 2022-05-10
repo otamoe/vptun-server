@@ -24,12 +24,9 @@ var ErrClientNotFound = &NotFoundError{
 	Name: "client",
 }
 
-func (client *Client) Clone() (rClient *Client) {
-	if client == nil {
-		return nil
-	}
+func (client Client) Clone() (rClient *Client) {
 	rClient = &Client{}
-	*rClient = *client
+	*rClient = client
 	rClient.Client = &pb.Client{}
 
 	if client.Client != nil {
